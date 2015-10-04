@@ -1,7 +1,7 @@
 #ifndef RAE_ANIMATOR_HPP
 #define RAE_ANIMATOR_HPP
 
-#include <math.h>
+#include <cmath>
 #include <glm/glm.hpp>
 
 #ifndef M_PI
@@ -32,7 +32,7 @@ template<typename T> inline bool isCloseEnough(const T& target, const T& value)
 
 template<> inline bool isCloseEnough<float>(const float& target, const float& value)
 {
-    if( abs(target - value) < 0.00001f )
+    if( std::abs(target - value) < 0.00001f )
         return true;
     return false;
 }
@@ -81,19 +81,23 @@ public:
 
     T cubicEaseIn(float time, T startValue, T valueChange, float duration)
     {
-        return valueChange * (time /= duration) * time * time + startValue;
+        time /= duration;
+        return valueChange * time * time * time + startValue;
     }
 
     T cubicEaseOut(float time, T startValue, T valueChange, float duration)
     {
-        return valueChange * ((time = time / duration - 1.0f) * time * time + 1.0f) + startValue;
+        time = (time / duration) - 1.0f;
+        return valueChange * (time * time * time + 1.0f) + startValue;
     }
 
     T cubicEaseInOut(float time, T startValue, T valueChange, float duration)
     {
-        if((time /= duration / 2.0f) < 1.0f)
+        time /= duration / 2.0f;
+        if(time < 1.0f)
             return valueChange / 2.0f * time * time * time + startValue;
-        return valueChange / 2.0f * ((time -= 2.0f) * time * time + 2.0f) + startValue;
+        time -= 2.0f;
+        return valueChange / 2.0f * (time * time * time + 2.0f) + startValue;
     }
 
     void init(T startValue, T targetValue, float startTime, float duration, AnimatorType setType = AnimatorType::SINE_IN_OUT )
