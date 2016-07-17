@@ -24,8 +24,9 @@ Source code is found under "src/rae".
 	# on Linux (use premake4.4beta, not 4.3 which comes with Ubuntu 14.04):
     premake4 gmake
     # I had to install the GL headers:
-    sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev
-    # I installed GLFW3 and GLEW from source, and copied the libs to the lib dir.
+    sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libassimp-dev
+    # I installed GLFW3 and GLEW from source, and copied the libs to the lib_linux dir,
+    # and I also copied libassimp.so to the lib_linux dir. 
     # And finally:
     make
     # cd into the bin directory and run:

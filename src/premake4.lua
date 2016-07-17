@@ -47,6 +47,7 @@ solution "rae_render"
       configuration {"linux"}
          files { "external/glfw/lib/x11/*.c", "external/glfw/x11/*.h" }
          includedirs { "external/glfw/lib/x11" }
+         targetdir "../lib_linux"
          defines { "_GLFW_X11", "_GLFW_USE_LINUX_JOYSTICKS", "_GLFW_HAS_XRANDR", "_GLFW_HAS_PTHREAD" ,"_GLFW_HAS_SCHED_YIELD", "_GLFW_HAS_GLXGETPROCADDRESS" }
          buildoptions { "-pthread" }
        
@@ -78,6 +79,9 @@ solution "rae_render"
       files {"external/glew/*.c", "external/glew/*.h"}
       defines { "GLEW_STATIC" }
 
+      configuration {"linux"}
+         targetdir "../lib_linux"
+
       configuration "Debug"
          defines { "DEBUG" }
          flags { "Symbols", "ExtraWarnings" }
@@ -94,6 +98,9 @@ solution "rae_render"
       files { "external/nanovg/src/*.c" }
       targetdir("../lib")
       defines { "_CRT_SECURE_NO_WARNINGS", "GLEW_STATIC" } --,"FONS_USE_FREETYPE" } Uncomment to compile with FreeType support
+
+      configuration {"linux"}
+         targetdir "../lib_linux"
       
       configuration "Debug"
          defines { "DEBUG" }
@@ -110,6 +117,9 @@ solution "rae_render"
       targetdir "../lib"
       files {"external/assimp/*.c", "external/assimp/*.h"}
       
+      configuration {"linux"}
+         targetdir "../lib_linux"
+
       configuration "Debug"
          defines { "DEBUG" }
          flags { "Symbols", "ExtraWarnings" }
