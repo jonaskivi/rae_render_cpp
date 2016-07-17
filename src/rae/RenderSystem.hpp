@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 
 #include "System.hpp"
+#include "Camera.hpp"
 
 struct NVGcontext;
 
@@ -19,11 +20,12 @@ class Transform;
 class Material;
 class Mesh;
 class Entity;
+class Input;
 
 class RenderSystem : public System
 {
 public:
-	RenderSystem(ObjectFactory* set_factory, GLFWwindow* set_window);
+	RenderSystem(ObjectFactory* set_factory, GLFWwindow* set_window, Input& input);
 	~RenderSystem();
 
 	void initNanoVG();
@@ -47,10 +49,13 @@ public:
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
 
-	void onMouseButtonPress(int set_button, int x, int y);
+	void onMouseEvent(const Input& input);
+	void onKeyEvent(const Input& input);
 
 	int   windowPixelHeight() { return m_windowPixelHeight; }
+	int   windowPixelWidth()  { return m_windowPixelWidth;  }
 	int   windowHeight()      { return m_windowHeight;      }
+	int   windowWidth()       { return m_windowWidth;       }
 	float screenPixelRatio()  { return m_screenPixelRatio;  }
 	
 protected:
@@ -85,20 +90,13 @@ protected:
 	float m_screenPixelRatio;
 
 	ObjectFactory* m_objectFactory;
+	Input& m_input;
 
 	int m_nroFrames;
 	double m_fpsTimer;
 	std::string m_fpsString;
 	
-	// TODO make a proper Camera Component
-	glm::mat4 m_viewMatrix;
-	glm::mat4 m_projectionMatrix;
-	glm::vec3 m_cameraPosition;
-	float m_yawAngle;
-	float m_pitchAngle;
-	float m_fieldOfView;
-	float m_cameraSpeed;
-	float m_rotateSpeed;
+	Camera camera;
 };
 
 }

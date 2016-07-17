@@ -10,6 +10,9 @@
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
+#include "core/Utils.hpp"
+#include "ui/Input.hpp"
+
 #include "ObjectFactory.hpp"
 #include "Transform.hpp"
 #include "Material.hpp"
@@ -37,24 +40,27 @@ int loadFonts(NVGcontext* vg)
 	return 0;
 }
 
-RenderSystem::RenderSystem(ObjectFactory* set_factory, GLFWwindow* set_window)
+RenderSystem::RenderSystem(ObjectFactory* set_factory, GLFWwindow* set_window, Input& input)
 : m_objectFactory(set_factory),
 m_window(set_window),
+m_input(input),
 m_nroFrames(0),
 m_fpsTimer(0.0),
 m_fpsString("fps:"),
 //m_pickedString("Nothing picked"),
 vg(nullptr),
-m_cameraPosition(0.0f, 0.0f, 0.0f),
-m_yawAngle(0.0f),
-m_pitchAngle(0.0f),
-m_fieldOfView(70.0f),
-m_cameraSpeed(2.0f),
-m_rotateSpeed(1.0f)
+camera(/*fieldOfView*/Math::toRadians(70.0f), /*aspect*/16.0f / 9.0f, /*aperture*/0.1f, /*focusDistance*/10.0f)
 {
 	initNanoVG();
 
 	init();
+
+	using std::placeholders::_1;
+	m_input.registerMouseButtonPressCallback(std::bind(&RenderSystem::onMouseEvent, this, _1));
+	m_input.registerMouseButtonReleaseCallback(std::bind(&RenderSystem::onMouseEvent, this, _1));
+	m_input.registerMouseMotionCallback(std::bind(&RenderSystem::onMouseEvent, this, _1));
+	m_input.registerScrollCallback(std::bind(&RenderSystem::onMouseEvent, this, _1));
+	m_input.registerKeyEventCallback(std::bind(&RenderSystem::onKeyEvent, this, _1));
 }
 
 RenderSystem::~RenderSystem()
@@ -90,11 +96,11 @@ void RenderSystem::initNanoVG()
 
 void RenderSystem::init()
 {
-	//1.97074, 1.01764, 1.84567, 0.475768, -0.358624 
-	m_cameraPosition = glm::vec3(-1.97f, 1.0f, 1.84);
-	m_yawAngle = 0.5837f;
-	m_pitchAngle = -0.3241f;
+	camera.setPosition(vec3(-1.97f, 1.0f, 1.84));
+	camera.setYaw(0.5837f);
+	camera.setPitch(-0.3241f);
 
+	// Background color
 	glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
@@ -140,64 +146,6 @@ Material& RenderSystem::createAnimatingMaterial(int type)
 
 	material.generateFBO(vg);
 	return material;
-}
-
-void RenderSystem::updateCamera(double time, double delta_time)
-{
-	// Rotation with arrow keys:
-	if (glfwGetKey( m_window, GLFW_KEY_LEFT ) == GLFW_PRESS)
-		m_yawAngle += float(delta_time) * m_rotateSpeed;
-	else if (glfwGetKey( m_window
-                        , GLFW_KEY_RIGHT ) == GLFW_PRESS)
-		m_yawAngle -= float(delta_time) * m_rotateSpeed;
-
-	if (glfwGetKey( m_window, GLFW_KEY_UP ) == GLFW_PRESS)
-		m_pitchAngle += float(delta_time) * m_rotateSpeed;
-	else if (glfwGetKey( m_window, GLFW_KEY_DOWN ) == GLFW_PRESS)
-		m_pitchAngle -= float(delta_time) * m_rotateSpeed;
-
-	// Direction : Spherical coordinates to Cartesian coordinates conversion
-	glm::vec3 direction(
-		cos(m_pitchAngle) * sin(m_yawAngle), 
-		sin(m_pitchAngle),
-		cos(m_pitchAngle) * cos(m_yawAngle)
-	);
-	
-	// Right vector
-	glm::vec3 right = glm::vec3(
-		sin(m_yawAngle - 3.14f/2.0f),
-		0,
-		cos(m_yawAngle - 3.14f/2.0f)
-	);
-	
-	// Up vector
-	glm::vec3 up = glm::cross( right, direction );
-
-	// Move forward
-	if (glfwGetKey( m_window, GLFW_KEY_W ) == GLFW_PRESS)
-	{
-		m_cameraPosition += direction * float(delta_time) * m_cameraSpeed;
-	}
-	// Move backward
-	if (glfwGetKey( m_window, GLFW_KEY_S ) == GLFW_PRESS)
-	{
-		m_cameraPosition -= direction * float(delta_time) * m_cameraSpeed;
-	}
-	// Move right
-	if (glfwGetKey( m_window, GLFW_KEY_D ) == GLFW_PRESS)
-	{
-		m_cameraPosition += right * float(delta_time) * m_cameraSpeed;
-	}
-	// Move left
-	if (glfwGetKey( m_window, GLFW_KEY_A ) == GLFW_PRESS)
-	{
-		m_cameraPosition -= right * float(delta_time) * m_cameraSpeed;
-	}
-
-	m_projectionMatrix = glm::perspective(m_fieldOfView, float(m_windowPixelWidth) / float(m_windowPixelHeight), 0.1f, 500.0f);
-	m_viewMatrix = glm::lookAt( m_cameraPosition, m_cameraPosition + direction, up );
-
-	//cout<<"camerapos: x: "<<m_cameraPosition.x << " y: " << m_cameraPosition.y << " z: " << m_cameraPosition.z << " yaw: " << m_yawAngle << " pitch: " << m_pitchAngle << "\n"; 
 }
 
 void RenderSystem::checkErrors(const char *file, int line)
@@ -372,11 +320,11 @@ void RenderSystem::renderMesh(Transform* transform, Material* material, Mesh* me
 
 	glm::mat4& modelMatrix = transform->modelMatrix();
 	// The model-view-projection matrix
-	glm::mat4 combinedMatrix = m_projectionMatrix * m_viewMatrix * modelMatrix;
+	glm::mat4 combinedMatrix = camera.m_projectionMatrix * camera.m_viewMatrix * modelMatrix;
 
 	glUniformMatrix4fv(modelViewMatrixUni, 1, GL_FALSE, &combinedMatrix[0][0]);
 	glUniformMatrix4fv(modelMatrixUni, 1, GL_FALSE, &modelMatrix[0][0]);
-	glUniformMatrix4fv(viewMatrixUni, 1, GL_FALSE, &m_viewMatrix[0][0]);
+	glUniformMatrix4fv(viewMatrixUni, 1, GL_FALSE, &camera.m_viewMatrix[0][0]);
 
 	glm::vec3 lightPos = glm::vec3(2.0f, 0.0f, 0.0f);
 	glUniform3f(lightPositionUni, lightPos.x, lightPos.y, lightPos.z);
@@ -402,7 +350,7 @@ void RenderSystem::renderMeshPicking(Transform* transform, Mesh* mesh, int entit
 
 	glm::mat4& modelMatrix = transform->modelMatrix();
 	// The model-view-projection matrix
-	glm::mat4 combinedMatrix = m_projectionMatrix * m_viewMatrix * modelMatrix;
+	glm::mat4 combinedMatrix = camera.m_projectionMatrix * camera.m_viewMatrix * modelMatrix;
 
 	glUniformMatrix4fv(pickingModelViewMatrixUni, 1, GL_FALSE, &combinedMatrix[0][0]);
 	glUniform1i(entityUni, entity_id);
@@ -426,7 +374,7 @@ void RenderSystem::render2d(double time, double delta_time)
 		nvgFillColor(vg, nvgRGBA(235, 235, 235, 192));
 		nvgText(vg, 10.0f, 10.0f, m_fpsString.c_str(), nullptr);
 
-		nvgText(vg, 10.0f, 30.0f, "Keys: WASD, Arrows, IO, Esc", nullptr);
+		nvgText(vg, 10.0f, 30.0f, "Keys: Second mouse + WASDQE + Shift, Arrows, IO, Esc", nullptr);
 
 		std::string entity_count_str = "Entities: " + std::to_string(m_objectFactory->entityCount());
 		nvgText(vg, 10.0f, 50.0f, entity_count_str.c_str(), nullptr);
@@ -458,9 +406,90 @@ void RenderSystem::osEventResizeWindowPixels(int width, int height)
 	m_screenPixelRatio = (float)m_windowPixelWidth / (float)m_windowWidth;
 }
 
-void RenderSystem::onMouseButtonPress(int set_button, int x, int y)
+void RenderSystem::onMouseEvent(const Input& input)
 {
-	// TODO
+	if (input.eventType == EventType::MOUSE_MOTION)
+	{
+		if (input.mouse.button(MouseButton::SECOND))
+		{
+			//cout << "RenderSystem mouse motion. x: " << input->mouse.xRel
+			//	<< " y: " << input->mouse.yRel << endl;
+
+			const float rotateSpeedMul = 5.0f;
+
+			camera.rotateYaw(input.mouse.xRel * -1.0f * rotateSpeedMul);
+			camera.rotatePitch(input.mouse.yRel * -1.0f * rotateSpeedMul);
+		}
+	}
+	else if (input.eventType == EventType::MOUSE_BUTTON_PRESS)
+	{
+		//cout << "RenderSystem mouse press. x: " << input->mouse.x
+		//	<< " y: " << input->mouse.y << endl;
+	}
+	else if (input.eventType == EventType::MOUSE_BUTTON_RELEASE)
+	{
+		if (input.mouse.eventButton == MouseButton::FIRST)
+		{
+			//cout << "RenderSystem mouse release. x: " << input->mouse.x
+			//	<< " y: " << input->mouse.y << endl;
+		}
+	}
+
+	if (input.eventType == EventType::SCROLL)
+	{
+		const float scrollSpeedMul = -0.1f;
+		camera.plusFieldOfView(input.mouse.scrollY * scrollSpeedMul);
+	}
+}
+
+void RenderSystem::onKeyEvent(const Input& input)
+{
+	if (input.eventType == EventType::KEY_PRESS)
+	{
+		switch (input.key.value)
+		{
+			//case KeySym::T: toggleInfoText(); break;
+			default:
+			break;
+		}
+	}
+}
+
+void RenderSystem::updateCamera(double time, double delta_time)
+{
+	camera.setAspectRatio( float(m_windowPixelWidth) / float(m_windowPixelHeight) );
+
+	if (m_input.getKeyState(KeySym::Control_L))
+		camera.setCameraSpeedDown(true);
+	else camera.setCameraSpeedDown(false);
+
+	if (m_input.getKeyState(KeySym::Shift_L))
+		camera.setCameraSpeedUp(true);
+	else camera.setCameraSpeedUp(false);
+
+	// Rotation with arrow keys
+	if (m_input.getKeyState(KeySym::Left))
+		camera.rotateYaw(float(delta_time), +1);
+	else if (m_input.getKeyState(KeySym::Right))
+		camera.rotateYaw(float(delta_time), -1);
+
+	if (m_input.getKeyState(KeySym::Up))
+		camera.rotatePitch(float(delta_time), +1);
+	else if (m_input.getKeyState(KeySym::Down))
+		camera.rotatePitch(float(delta_time), -1);
+
+	// Camera movement
+	if (m_input.getKeyState(KeySym::W)) { camera.moveForward(float(delta_time)); }
+	if (m_input.getKeyState(KeySym::S)) { camera.moveBackward(float(delta_time)); }
+	if (m_input.getKeyState(KeySym::D)) { camera.moveRight(float(delta_time)); }
+	if (m_input.getKeyState(KeySym::A)) { camera.moveLeft(float(delta_time)); }
+	if (m_input.getKeyState(KeySym::E)) { camera.moveUp(float(delta_time)); }
+	if (m_input.getKeyState(KeySym::Q)) { camera.moveDown(float(delta_time)); }
+
+	camera.update();
+
+	//cout<<"camerapos: x: "<<m_cameraPosition.x << " y: " << m_cameraPosition.y << " z: " << m_cameraPosition.z
+	//	<< " yaw: " << m_yawAngle << " pitch: " << m_pitchAngle << "\n";
 }
 
 } //end namespace Rae

@@ -44,9 +44,11 @@ void Material::update(NVGcontext* vg, double time)
 	nvgluBindFramebuffer(m_framebufferObject);
 	glViewport(0, 0, m_width, m_height);
 
-	if(m_type == 1)
+	if(m_type == 2)
 		glClearColor(0.0f, 0.0f, 0.1f, 0.0f);
-	else glClearColor(0.7f, 0.3f, 0.1f, 0.0f);
+	else if  (m_type == 1)
+		glClearColor(0.7f, 0.3f, 0.1f, 0.0f);
+	else glClearColor(0.2f, 0.6f, 0.7f, 0.0f);
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	nvgBeginFrame(vg, m_width, m_height, /*pixelRatio*/1.0f);
@@ -54,14 +56,16 @@ void Material::update(NVGcontext* vg, double time)
 		nvgBeginPath(vg);
 		nvgCircle(vg, float(m_width) * 0.5f, float(m_height) * 0.5f, circle_size);
 		
-		if(m_type == 1)
+		if(m_type == 2)
 			nvgFillColor(vg, nvgRGBA(220, 45, 0, 200));
-		else nvgFillColor(vg, nvgRGBA(0, 220, 45, 200));
+		else if(m_type == 1)
+			nvgFillColor(vg, nvgRGBA(0, 220, 45, 200));
+		else nvgFillColor(vg, nvgRGBA(10, 145, 200, 200)); 
 
 
 		nvgFill(vg);
 
-		if(m_type == 1)
+		if(m_type == 2)
 		{
 			nvgFontFace(vg, "sans");
 

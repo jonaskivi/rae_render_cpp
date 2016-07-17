@@ -7,6 +7,8 @@
 #include <GLFW/glfw3.h>
 
 #include "ObjectFactory.hpp"
+#include "core/ScreenSystem.hpp"
+#include "ui/Input.hpp"
 
 namespace Rae
 {
@@ -30,7 +32,13 @@ public:
 	void osEventResizeWindow(int width, int height);
 	void osEventResizeWindowPixels(int width, int height);
 
-	void onMouseButtonPress(int set_button, double x, double y);
+	void osMouseButtonPress(int set_button, float x, float y);
+	void osMouseButtonRelease(int set_button, float x, float y);
+	void osMouseMotion(float x, float y);
+	void osScrollEvent(float scrollX, float scrollY);
+	void osKeyEvent(int key, int scancode, int action, int mods);
+
+	void onMouseEvent(const Input& input);
 
 protected:
 
@@ -38,6 +46,9 @@ protected:
 
 	double m_previousTime;
 	double m_currentTime;
+
+	ScreenSystem m_screenSystem;
+	Input m_input;
 	
 	ObjectFactory m_objectFactory;
 
@@ -48,6 +59,7 @@ protected:
 	int m_meshID; // These should go someplace else...
 	int m_modelID;
 	int m_materialID;
+	int m_bunnyMaterialID;
 	int m_buttonMaterialID;
 };
 

@@ -10,7 +10,7 @@ solution "rae_render"
       kind "ConsoleApp"
       language "C++"
       targetdir "../bin/"
-      files { "rae/*.hpp", "rae/*.cpp" }
+      files { "rae/**.hpp", "rae/**.cpp" }
       includedirs { "external/glew/include", "external/glfw/include", "external/nanovg/src", "external/glm", "external/glm/glm", "rae", "external/" }
       links {"glfw3", "glew", "nanovg", "assimp"}
       defines { "GLEW_STATIC", "NANOVG_GLEW" }

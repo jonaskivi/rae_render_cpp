@@ -52,7 +52,7 @@ void windowPixelSizeCallback(GLFWwindow* window, int width, int height)
 	g_engine->osEventResizeWindowPixels(width, height);
 }
 
-void GLFWonMouseButton(GLFWwindow* set_window, int set_button, int set_action, int set_mods)
+void glfwOnMouseButton(GLFWwindow* set_window, int set_button, int set_action, int set_mods)
 {
 	if( g_engine == nullptr )
 		return;
@@ -63,12 +63,36 @@ void GLFWonMouseButton(GLFWwindow* set_window, int set_button, int set_action, i
 	//cout << "GLFWMouseButtonPress. x: " << mx << " y: " << my << "\n";
 	if(set_action == GLFW_PRESS)
 	{
-		g_engine->onMouseButtonPress(set_button, mx, my);
+		g_engine->osMouseButtonPress(set_button, mx, my);
 	}
 	else if(set_action == GLFW_RELEASE)
 	{
-		//TODO release for a proper click, and add a proper event system.
+		g_engine->osMouseButtonRelease(set_button, mx, my);
 	}
+}
+
+void glfwOnMouseMotion(GLFWwindow* set_window, double set_x, double set_y)
+{
+	if( g_engine == nullptr )
+		return;
+
+	g_engine->osMouseMotion((float)set_x, (float)set_y);
+}
+
+void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if( g_engine == nullptr )
+		return;
+
+	g_engine->osKeyEvent(key, scancode, action, mods);
+}
+
+void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if( g_engine == nullptr )
+		return;
+
+	g_engine->osScrollEvent((float)xoffset, (float)yoffset);	
 }
 
 int main()
@@ -129,7 +153,10 @@ int main()
 	g_engine = &engine;
 	glfwSetWindowSizeCallback     (window, windowSizeCallback);
 	glfwSetFramebufferSizeCallback(window, windowPixelSizeCallback); // Support hi-dpi displays
-	glfwSetMouseButtonCallback    (window, GLFWonMouseButton);
+	glfwSetMouseButtonCallback    (window, glfwOnMouseButton);
+	glfwSetCursorPosCallback      (window, glfwOnMouseMotion);
+	glfwSetKeyCallback            (window, glfwKeyCallback);
+	glfwSetScrollCallback         (window, glfwScrollCallback);
 	
 	engine.run();
 
