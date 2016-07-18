@@ -73,7 +73,7 @@ void ScreenSystem::updateScreenInfo()
 		RaeLog << "ScreenSystem::updateScreenInfo() found " << screenCount << " screens.\n";
 	#endif
 	
-	for( uint i = 0; i < screenCount; i++ )
+	for( int i = 0; i < screenCount; i++ )
 	{
 		const GLFWvidmode* videoMode = glfwGetVideoMode( monitors[i] );
 

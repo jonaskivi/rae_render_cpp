@@ -63,11 +63,11 @@ void glfwOnMouseButton(GLFWwindow* set_window, int set_button, int set_action, i
 	//cout << "GLFWMouseButtonPress. x: " << mx << " y: " << my << "\n";
 	if(set_action == GLFW_PRESS)
 	{
-		g_engine->osMouseButtonPress(set_button, mx, my);
+		g_engine->osMouseButtonPress(set_button, (float)mx, (float)my);
 	}
 	else if(set_action == GLFW_RELEASE)
 	{
-		g_engine->osMouseButtonRelease(set_button, mx, my);
+		g_engine->osMouseButtonRelease(set_button, (float)mx, (float)my);
 	}
 }
 

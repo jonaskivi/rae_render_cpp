@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <string>
 
@@ -9,7 +10,9 @@ namespace Rae
 
 namespace Math
 {
-	const float TAU = 2.0f * M_PI; // www.tauday.org
+	const float TAU = 2.0f * (float)M_PI; // www.tauday.org
+	const float PI = (float)M_PI;
+	const float QUARTER_TAU = 0.5f * (float)M_PI;
 	const float RAD_TO_DEG = 360.0f / TAU;
 	const float DEG_TO_RAD = TAU / 360.0f;
 

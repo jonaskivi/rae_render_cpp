@@ -53,8 +53,8 @@ public:
 
 	public: void calculateHalfScreens()
 	{
-		screenHalfWidthP( screenWidthP() / 2 );
-		screenHalfHeightP( screenHeightP() / 2 );
+		screenHalfWidthP( float(screenWidthP() / 2) );
+		screenHalfHeightP( float(screenHeightP() / 2) );
 	}
 	public: float screenHalfWidthP() { return m_screenHalfWidthP; }
 	public: void screenHalfWidthP(float set) { m_screenHalfWidthP = set; }

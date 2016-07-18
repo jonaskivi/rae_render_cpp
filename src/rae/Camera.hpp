@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-using namespace glm;
+using glm::vec3;
 
 #include "core/Utils.hpp"
 
@@ -58,7 +58,7 @@ public:
 		float halfHeight = tan(m_fieldOfView / 2.0f);
 
 		float halfWidth = m_aspectRatio * halfHeight;
-		w = normalize(m_position - (m_position + direction));
+		w = glm::normalize(m_position - (m_position + direction));
 		
 		// Normal way: m_topLeftCorner = m_position - (halfWidth * right) + (halfHeight * up) - w;
 		m_topLeftCorner =
@@ -274,7 +274,7 @@ public:
 
 	void setFocusPosition(vec3 pos)
 	{
-		m_focusDistance = length(m_position - pos);
+		m_focusDistance = glm::length(m_position - pos);
 		m_needsUpdate = true;
 	}
 	

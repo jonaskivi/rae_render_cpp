@@ -1,17 +1,13 @@
 #ifndef RAE_ANIMATOR_HPP
 #define RAE_ANIMATOR_HPP
 
-#include <cmath>
+#include <math.h>
 #include <glm/glm.hpp>
 
-#ifndef M_PI
-    #define M_PI 3.14159265358979323846f
-#endif
+#include "core/Utils.hpp"
 
 namespace Rae
 {
-
-const float M_PI2 = float(2.0f * M_PI);
 
 enum class AnimatorType
 {
@@ -66,17 +62,17 @@ public:
 
     T sineEaseIn(float time, T startValue, T valueChange, float duration)
     {
-        return -valueChange * cosf(time / duration * (M_PI / 2.0f)) + valueChange + startValue;
+        return -valueChange * cosf(time / duration * Math::QUARTER_TAU) + valueChange + startValue;
     }
 
     T sineEaseOut(float time, T startValue, T valueChange, float duration)
     {
-        return valueChange * sinf(time / duration * (M_PI / 2.0f)) + startValue;
+        return valueChange * sinf(time / duration * Math::QUARTER_TAU) + startValue;
     }
 
     T sineEaseInOut(float time, T startValue, T valueChange, float duration)
     {
-        return -valueChange / 2.0f * (cosf(M_PI * time / duration) - 1.0f) + startValue;
+        return -valueChange / 2.0f * (cosf(Math::PI * time / duration) - 1.0f) + startValue;
     }
 
     T cubicEaseIn(float time, T startValue, T valueChange, float duration)
